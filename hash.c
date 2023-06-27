@@ -6,8 +6,8 @@
 #define SEED    0x12345678
 
 typedef struct Kd_municipios{
-  char cod_ibge[7];
-  char nome[50];
+  char cod_ibge[8];
+  char nome[100];
   float latitude;
   float longitude;
   int capital;
@@ -90,7 +90,7 @@ int hash_constroi(thash * h,int nbuckets, char * (*get_key)(void *) ){
 void * hash_busca(thash h, const char * key){
     int pos = hashf(key,SEED) %(h.max);
     while(h.table[pos] != 0){
-        if (strcmp (h.get_key((void*)h.table[pos]),key) ==0)
+        if (strcmp (h.get_key((void*)h.table[pos]), key) ==0)
             return (void *)h.table[pos];
         else
             pos = (pos+1)%(h.max);
@@ -126,72 +126,9 @@ void hash_apaga(thash *h){
     free(h->table);
 }
 
-void menu(){
-    thash *newHash;
-    int op = -1;
-    FILE *arq;
-    arq = fopen("municipios.txt", "r");
-    
-    if (arq == NULL){
-        printf("Não foi possível abrir o arquivo!\n");
-    }
-    
-    while (op != 5){
-
-        printf("------------- HASH PROGRAM -------------\n");
-        printf("1 - build Hash(s)\n");
-        printf("2 - Search in Hash(s)\n");
-        printf("3 - Delete hash\n");
-        printf("4 - Delete in hash\n");
-        printf("5 - Stop program\n");
-
-        scanf(" %d", &op);
-
-        if (op == 1){
-
-            hash_constroi(newHash, 7000, get_key);
-            
-            while (!feof(arq)) {
-
-                cidade *aux = malloc(sizeof(cidade));
-                fscanf(arq, "%[^,], %[^,], %f, %f, %d, %d, %d, %d, %[^,\n]", &aux->cod_ibge, aux->nome, &aux->latitude, &aux->longitude, &aux->capital, &aux->cod_uf, &aux->cod_siafi, &aux->ddd, aux->fuso_hor);
-                hash_insere(newHash, aux);
-                printf("to aqui\n");
-            }
-            fclose(arq);
-        }
-        
-        if (op == 2){
-            char codigo[8];
-            printf("\nDigite o código IBGE: ");
-            scanf(" %s", codigo);
-            cidade *resultado = (cidade*)hash_busca(*newHash, codigo);
-            if (resultado == NULL){
-                printf("\n Município não encontrado!!\n");
-            }
-            else{
-                printf("Município: %s \n", resultado->nome);
-            }
-             
-        }
-        
-        if (op == 3){
-            hash_apaga(newHash);
-        }
-        
-        if (op == 4){
-            
-            char codigo[50];
-            printf("\nDigite o código IBGE: ");
-            scanf(" %s", codigo);
-            hash_remove(newHash, codigo);
-        }
-    }   
-}
-
 int main(){
     
-    thash *newHash;
+    thash newHash;
     int op = -1;
     FILE *arq;
     arq = fopen("municipios.txt", "r");
@@ -213,13 +150,13 @@ int main(){
 
         if (op == 1){
 
-            hash_constroi(newHash, 10, get_key);
+            hash_constroi(&newHash, 5570, get_key);
             
             while (!feof(arq)) {
 
                 cidade *aux = malloc(sizeof(cidade));
-                fscanf(arq, "%d, %[^,], %f, %f, %d, %d, %d, %d, %[^,\n]", &aux->cod_ibge, aux->nome, &aux->latitude, &aux->longitude, &aux->capital, &aux->cod_uf, &aux->cod_siafi, &aux->ddd, aux->fuso_hor);
-                hash_insere(newHash, aloca_cidade(aux->cod_ibge, aux->nome, aux->latitude,aux->longitude, aux->capital, aux->cod_uf, aux->cod_siafi, aux->ddd, aux->fuso_hor));
+                fscanf(arq, " %[^,], %[^,], %f, %f, %d, %d, %d, %d, %[^,\n]", aux->cod_ibge, aux->nome, &aux->latitude, &aux->longitude, &aux->capital, &aux->cod_uf, &aux->cod_siafi, &aux->ddd, aux->fuso_hor);
+                hash_insere(&newHash, aloca_cidade(aux->cod_ibge, aux->nome, aux->latitude,aux->longitude, aux->capital, aux->cod_uf, aux->cod_siafi, aux->ddd, aux->fuso_hor));
             }
             
         }
@@ -227,16 +164,15 @@ int main(){
         if (op == 2){
             char codigo[8];
             printf("\nDigite o código IBGE: ");
-            scanf(" %s", codigo);
-            cidade *resultado = hash_busca(*newHash, codigo);
-            
-            printf("Município: %s\n", resultado->nome);
+            scanf(" %[^,\n]", codigo);
+            cidade *resultado = hash_busca(newHash, codigo);
+            printf("Município: %s \n", resultado->nome);
             
              
         }
         
         if (op == 3){
-            hash_apaga(newHash);
+            hash_apaga(&newHash);
         }
         
         if (op == 4){
@@ -244,7 +180,7 @@ int main(){
             char codigo[50];
             printf("\nDigite o código IBGE: ");
             scanf(" %s", codigo);
-            hash_remove(newHash, codigo);
+            hash_remove(&newHash, codigo);
         }
     }
 
