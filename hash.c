@@ -53,10 +53,22 @@ uint32_t hashf(const char* str, uint32_t h){
     return h;
 }
 
+uint32_t secondHashf(const char* str, uint32_t h){
+    
+    for (; *str; ++str) {
+        h ^= *str;
+        h *= 0x7f4a7c13; 
+        h ^= h >> 16;
+    }
+
+    return h;
+}
+
 
 void hash_insere(thash * h, void * bucket){
     uint32_t hash = hashf(h->get_key(bucket),SEED);
     int pos = hash % (h->max);
+    int secondHash = secondHashf(h->get_key(bucket), SEED) % h->max;
     if (h->max == (h->size+1)){
         free(bucket);
         
@@ -64,7 +76,7 @@ void hash_insere(thash * h, void * bucket){
         while(h->table[pos] != 0){
             if (h->table[pos] == h->deleted)
                 break;
-            pos = (pos +1) % h->max;
+            pos = (pos + secondHash) % h->max; //provavelmente onde colocarei a mudança com uma hash a mais
         }
         h->table[pos] = (uintptr_t) bucket;
         h->size +=1;
@@ -89,17 +101,19 @@ int hash_constroi(thash * h,int nbuckets, char * (*get_key)(void *) ){
 
 void * hash_busca(thash h, const char * key){
     int pos = hashf(key,SEED) %(h.max);
+    int secondHash = secondHashf(key, SEED) %h.max;
     while(h.table[pos] != 0){
         if (strcmp (h.get_key((void*)h.table[pos]), key) ==0)
             return (void *)h.table[pos];
         else
-            pos = (pos+1)%(h.max);
+            pos = (pos+secondHash)%(h.max); //aqui será a mudança para hash dupla
     }
     return NULL;
 }
 
 void hash_remove(thash * h, const char * key){
     int pos = hashf(key,SEED) % (h->max);
+    int secondHash = secondHashf(key, SEED)%h->max;
     while(h->table[pos]!=0){
         if (strcmp (h->get_key((void*)h->table[pos]),key) ==0){
             free((void *) h->table[pos]);
@@ -107,7 +121,7 @@ void hash_remove(thash * h, const char * key){
             h->size -=1;
             return;
         }else{
-            pos = (pos+1)%h->max;
+            pos = (pos+secondHash)%h->max; //mudança para hash dupla
         }
 
     }
@@ -150,7 +164,7 @@ int main(){
 
         if (op == 1){
 
-            hash_constroi(&newHash, 5570, get_key);
+            hash_constroi(&newHash, 20000, get_key);
             
             while (!feof(arq)) {
 
@@ -168,7 +182,6 @@ int main(){
             cidade *resultado = hash_busca(newHash, codigo);
             printf("Município: %s \n", resultado->nome);
             
-             
         }
         
         if (op == 3){
