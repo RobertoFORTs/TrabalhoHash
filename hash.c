@@ -113,27 +113,27 @@ void * hash_busca(thash h, const char * key){
 
 void hash_remove(thash * h, const char * key){
     int pos = hashf(key,SEED) % (h->max);
-    int secondHash = secondHashf(key, SEED)%h->max;
+    int secondHash = secondHashf(key, SEED)%(h->max);
     while(h->table[pos]!=0){
         if (strcmp (h->get_key((void*)h->table[pos]),key) ==0){
             free((void *) h->table[pos]);
             h->table[pos] = h->deleted;
             h->size -=1;
-            return;
+            break;
+            
         }else{
             pos = (pos+secondHash)%h->max; //mudança para hash dupla
         }
-
     }
-    return;
 }
 
 void hash_apaga(thash *h){
     int pos;
-    for(pos =0;pos< h->max;pos++){
+    for(pos =0;pos < h->max;pos++){
         if (h->table[pos] != 0){
             if (h->table[pos]!=h->deleted){
                 free((void *)h->table[pos]);
+                h->table[pos] = h->deleted;
             }
         }
     }
@@ -180,7 +180,13 @@ int main(){
             printf("\nDigite o código IBGE: ");
             scanf(" %[^,\n]", codigo);
             cidade *resultado = hash_busca(newHash, codigo);
-            printf("Município: %s \n", resultado->nome);
+            if (resultado == NULL){
+                printf("\nA cidade não está registrada na estrutura de dados!\n");
+            }
+            else{
+                printf("Município: %s \n", resultado->nome);
+            }
+            
             
         }
         
