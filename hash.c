@@ -164,7 +164,7 @@ int main(){
 
         if (op == 1){
 
-            hash_constroi(&newHash, 20000, get_key);
+            hash_constroi(&newHash, 7000, get_key);
             
             while (!feof(arq)) {
 
